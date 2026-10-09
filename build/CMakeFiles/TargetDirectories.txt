@@ -1,0 +1,3 @@
+/home/aheuer/CPP/soundboard_plus_plus/build/CMakeFiles/SoundBoardPlusPlus.dir
+/home/aheuer/CPP/soundboard_plus_plus/build/CMakeFiles/edit_cache.dir
+/home/aheuer/CPP/soundboard_plus_plus/build/CMakeFiles/rebuild_cache.dir
