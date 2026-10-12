@@ -122,7 +122,7 @@ int main() {
         if (ImGui::BeginPopup("rename")) {
           if (ImGui::IsWindowAppearing())
             ImGui::SetKeyboardFocusHere();
-          if (ImGui::InputText("##name", &s.name))
+          if (ImGui::InputText("##name", &s.name)) // text after ## is hidden text for imgui
             saveSounds(sounds);
           if (ImGui::IsKeyPressed(ImGuiKey_Enter))
             ImGui::CloseCurrentPopup();
@@ -139,7 +139,11 @@ int main() {
     }
     
     // Add sounds: pick files, copy them into sounds/, name the buttons after the files
-    if (ImGui::Button("Add sound...")) {
+    // Right-align: move the cursor to the right edge minus the button's width
+    const char* add_label = "Add sound...";
+    float add_width = ImGui::CalcTextSize(add_label).x + style.FramePadding.x * 2;
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - add_width);
+    if (ImGui::Button(add_label)) {
       auto files = pfd::open_file("Add sound", "", {"Audio files", "*.wav *.mp3 *.ogg *.flac"},
                                   pfd::opt::multiselect).result();  // blocks until the dialog closes
       for (const std::filesystem::path src : files) {
