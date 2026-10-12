@@ -3,10 +3,12 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <SFML/Audio.hpp>
+#include <portable-file-dialogs.h>
 #include <algorithm>
-#include <deque>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <list>
 #include <string>
 
 void MySaveFunction() {
@@ -14,10 +16,26 @@ void MySaveFunction() {
 }
 
 struct SoundButton {
-  std::string name;
+  std::string name, file_name;
   sf::SoundBuffer buffer;
   sf::Sound sound{buffer};
 };
+
+// file_name is relative to sounds/
+bool addSound(std::list<SoundButton>& sounds, const std::string& name, const std::string& file_name) {
+  SoundButton& s = sounds.emplace_back();
+  s.name = name;
+  s.file_name = file_name;
+  if (s.buffer.loadFromFile("sounds/" + file_name)) return true;
+  std::cerr << "Could not load sounds/" << file_name << '\n';
+  sounds.pop_back();
+  return false;
+}
+
+void saveSounds(const std::list<SoundButton>& sounds) {
+  std::ofstream csv("sounds.csv");
+  for (auto& s : sounds) csv << s.name << ',' << s.file_name << '\n';
+}
 
 int main() {
   // Create window with OpenGL context
@@ -58,18 +76,12 @@ int main() {
   float f = 0.5f;
 
   // Each line of sounds.csv: button name,file name
-  // Can't use a vector here because it would mess up the buffer
-  std::deque<SoundButton> sounds;
+  std::list<SoundButton> sounds; // Used instead of vector or deque because it cleanly maintains buffers when new elements are added
   std::ifstream csv("sounds.csv");
   std::string button_name, file_name;
-  while (std::getline(csv, button_name, ',') && std::getline(csv, file_name)) {
-    SoundButton& s = sounds.emplace_back();
-    s.name = button_name;
-    if (!s.buffer.loadFromFile("sounds/" + file_name)) {
-      std::cerr << "Could not load " << file_name << '\n';
-      sounds.pop_back();
-    }
-  }
+  while (std::getline(csv, button_name, ',') && std::getline(csv, file_name))
+    addSound(sounds, button_name, file_name);
+
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
@@ -83,6 +95,19 @@ int main() {
     ImGui::SetNextWindowSize(io.DisplaySize);
     ImGui::Begin("SoundBoard++", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+
+    // Add sounds: pick files, copy them into sounds/, name the buttons after the files
+    if (ImGui::Button("Add sound...")) {
+      auto files = pfd::open_file("Add sound", "", {"Audio files", "*.wav *.mp3 *.ogg *.flac"},
+                                  pfd::opt::multiselect).result();  // blocks until the dialog closes
+      for (const std::filesystem::path src : files) {
+        std::filesystem::path dst = "sounds" / src.filename();
+        if (!std::filesystem::exists(dst))
+          std::filesystem::copy_file(src, dst);
+        if (addSound(sounds, src.stem().string(), src.filename().string()))
+          saveSounds(sounds);
+      }
+    }
 
     const float tile = 120.0f;  // button height and minimum width, in pixels
     int columns = std::max(1, int(ImGui::GetContentRegionAvail().x / (tile + style.ItemSpacing.x)));

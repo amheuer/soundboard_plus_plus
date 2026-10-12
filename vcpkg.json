@@ -2,12 +2,18 @@
   "dependencies": [
     {
       "name": "imgui",
-      "features": ["glfw-binding", "opengl3-binding"]
+      "features": [
+        "glfw-binding",
+        "opengl3-binding"
+      ]
     },
     {
       "name": "sfml",
       "default-features": false,
-      "features": ["audio"]
-    }
+      "features": [
+        "audio"
+      ]
+    },
+    "portable-file-dialogs"
   ]
 }
