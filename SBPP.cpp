@@ -33,7 +33,7 @@ int main() {
 
   sf::SoundBuffer buffer;
   bool loaded = buffer.loadFromFile("laughtrack.mp3");
-  sf::Sound sound(buffer);
+  sf::Sound laugh_track(buffer);
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
@@ -43,16 +43,15 @@ int main() {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Text("Hello, world %d", 123);
-    if (ImGui::Button("Save"))
-      MySaveFunction();
-    ImGui::InputText("string", buf, IM_COUNTOF(buf));
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+    ImGui::SetNextWindowPos({0, 0});
+    ImGui::SetNextWindowSize(io.DisplaySize);
+    ImGui::Begin("SoundBoard++", nullptr,
+                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
-    if (!loaded)
-      ImGui::Text("Could not load sound.wav");
-    else if (ImGui::Button("Play"))
-      sound.play();
+    if (loaded && ImGui::Button("Laugh Track"))
+      laugh_track.play();
+
+    ImGui::End();
 
     // Rendering
     ImGui::Render();
