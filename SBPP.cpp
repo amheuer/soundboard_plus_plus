@@ -3,11 +3,20 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <SFML/Audio.hpp>
+#include <deque>
+#include <fstream>
 #include <iostream>
+#include <string>
 
 void MySaveFunction() {
   std::cout << "Saved";
 }
+
+struct SoundButton {
+  std::string name;
+  sf::SoundBuffer buffer;
+  sf::Sound sound{buffer};
+};
 
 int main() {
   // Create window with OpenGL context
@@ -46,9 +55,19 @@ int main() {
   char buf[256] = "";
   float f = 0.5f;
 
-  sf::SoundBuffer buffer;
-  bool loaded = buffer.loadFromFile("laughtrack.mp3");
-  sf::Sound laugh_track(buffer);
+  // Each line of sounds.csv: button name,file name
+  // Can't use a vector here because it would mess up the buffer
+  std::deque<SoundButton> sounds;
+  std::ifstream csv("sounds.csv");
+  std::string button_name, file_name;
+  while (std::getline(csv, button_name, ',') && std::getline(csv, file_name)) {
+    SoundButton& s = sounds.emplace_back();
+    s.name = button_name;
+    if (!s.buffer.loadFromFile("sounds/" + file_name)) {
+      std::cerr << "Could not load " << file_name << '\n';
+      sounds.pop_back();
+    }
+  }
 
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
@@ -63,8 +82,9 @@ int main() {
     ImGui::Begin("SoundBoard++", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
-    if (loaded && ImGui::Button("Laugh Track"))
-      laugh_track.play();
+    for (auto& s : sounds)
+      if (ImGui::Button(s.name.c_str()))
+        s.sound.play();
 
     ImGui::End();
 
