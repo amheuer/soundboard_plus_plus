@@ -20,6 +20,21 @@ int main() {
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
+
+  // Style changes
+  ImGui::StyleColorsClassic();
+  ImGuiStyle& style = ImGui::GetStyle();
+  style.WindowRounding    = 6.0f;
+  style.ChildRounding     = 6.0f;
+  style.PopupRounding     = 6.0f;
+  style.FrameRounding     = 6.0f;
+  style.ScrollbarRounding = 6.0f;
+  style.GrabRounding      = 6.0f;
+  style.TabRounding       = 6.0f;
+  style.MenuItemRounding  = 6.0f;
+  style.ImageRounding     = 6.0f;
+  style.FontSizeBase      = 18.0f;
+
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
@@ -52,6 +67,11 @@ int main() {
       laugh_track.play();
 
     ImGui::End();
+
+    // ShowStyleEditor() // Allows customization of the window style
+    // ImGui::Begin("Style Editor");
+    // ImGui::ShowStyleEditor();
+    // ImGui::End();
 
     // Rendering
     ImGui::Render();
