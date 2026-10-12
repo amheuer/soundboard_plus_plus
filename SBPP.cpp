@@ -3,6 +3,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <SFML/Audio.hpp>
+#include <algorithm>
 #include <deque>
 #include <fstream>
 #include <iostream>
@@ -43,6 +44,7 @@ int main() {
   style.MenuItemRounding  = 6.0f;
   style.ImageRounding     = 6.0f;
   style.FontSizeBase      = 18.0f;
+  style.CellPadding = {6.0f, 6.0f};
 
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
@@ -82,9 +84,17 @@ int main() {
     ImGui::Begin("SoundBoard++", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
-    for (auto& s : sounds)
-      if (ImGui::Button(s.name.c_str()))
-        s.sound.play();
+    const float tile = 120.0f;  // button height and minimum width, in pixels
+    int columns = std::max(1, int(ImGui::GetContentRegionAvail().x / (tile + style.ItemSpacing.x)));
+
+    if (ImGui::BeginTable("grid", columns)) {
+      for (auto& s : sounds) {
+        ImGui::TableNextColumn();
+        if (ImGui::Button(s.name.c_str(), {-FLT_MIN, tile}))  // -FLT_MIN = fill the cell's width
+          s.sound.play();
+      }
+      ImGui::EndTable();
+    }
 
     ImGui::End();
 
