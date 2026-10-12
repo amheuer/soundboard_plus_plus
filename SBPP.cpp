@@ -2,6 +2,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <imgui_stdlib.h>
 #include <SFML/Audio.hpp>
 #include <portable-file-dialogs.h>
 #include <algorithm>
@@ -96,6 +97,47 @@ int main() {
     ImGui::Begin("SoundBoard++", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
 
+    const float tile = 120.0f;  // button height and minimum width, in pixels
+    int columns = std::max(1, int(ImGui::GetContentRegionAvail().x / (tile + style.ItemSpacing.x)));
+
+    if (ImGui::BeginTable("grid", columns)) {
+      auto to_delete = sounds.end();
+      for (auto it = sounds.begin(); it != sounds.end(); ++it) {
+        SoundButton& s = *it;
+        ImGui::TableNextColumn();
+        ImGui::PushID(&s);  // ID from the object, not the name, so renaming doesn't close the menu
+        if (ImGui::Button(s.name.c_str(), {-FLT_MIN, tile}))  // -FLT_MIN = fill the cell's width
+          s.sound.play();
+        bool rename = false;
+        if (ImGui::BeginPopupContextItem("menu")) {
+          if (ImGui::MenuItem("Edit name"))
+            rename = true;
+          if (ImGui::MenuItem("Delete"))
+            to_delete = it;
+          ImGui::EndPopup();
+        }
+
+        if (rename)
+          ImGui::OpenPopup("rename");
+        if (ImGui::BeginPopup("rename")) {
+          if (ImGui::IsWindowAppearing())
+            ImGui::SetKeyboardFocusHere();
+          if (ImGui::InputText("##name", &s.name))
+            saveSounds(sounds);
+          if (ImGui::IsKeyPressed(ImGuiKey_Enter))
+            ImGui::CloseCurrentPopup();
+          ImGui::EndPopup();
+        }
+        ImGui::PopID();
+      }
+      ImGui::EndTable();
+
+      if (to_delete != sounds.end()) {
+        sounds.erase(to_delete);
+        saveSounds(sounds);
+      }
+    }
+    
     // Add sounds: pick files, copy them into sounds/, name the buttons after the files
     if (ImGui::Button("Add sound...")) {
       auto files = pfd::open_file("Add sound", "", {"Audio files", "*.wav *.mp3 *.ogg *.flac"},
@@ -109,17 +151,6 @@ int main() {
       }
     }
 
-    const float tile = 120.0f;  // button height and minimum width, in pixels
-    int columns = std::max(1, int(ImGui::GetContentRegionAvail().x / (tile + style.ItemSpacing.x)));
-
-    if (ImGui::BeginTable("grid", columns)) {
-      for (auto& s : sounds) {
-        ImGui::TableNextColumn();
-        if (ImGui::Button(s.name.c_str(), {-FLT_MIN, tile}))  // -FLT_MIN = fill the cell's width
-          s.sound.play();
-      }
-      ImGui::EndTable();
-    }
 
     ImGui::End();
 
