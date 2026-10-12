@@ -2,6 +2,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <SFML/Audio.hpp>
 #include <iostream>
 
 void MySaveFunction() {
@@ -30,6 +31,10 @@ int main() {
   char buf[256] = "";
   float f = 0.5f;
 
+  sf::SoundBuffer buffer;
+  bool loaded = buffer.loadFromFile("laughtrack.mp3");
+  sf::Sound sound(buffer);
+
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
 
@@ -43,6 +48,11 @@ int main() {
       MySaveFunction();
     ImGui::InputText("string", buf, IM_COUNTOF(buf));
     ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+
+    if (!loaded)
+      ImGui::Text("Could not load sound.wav");
+    else if (ImGui::Button("Play"))
+      sound.play();
 
     // Rendering
     ImGui::Render();

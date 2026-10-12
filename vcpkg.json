@@ -3,6 +3,11 @@
     {
       "name": "imgui",
       "features": ["glfw-binding", "opengl3-binding"]
+    },
+    {
+      "name": "sfml",
+      "default-features": false,
+      "features": ["audio"]
     }
   ]
 }
